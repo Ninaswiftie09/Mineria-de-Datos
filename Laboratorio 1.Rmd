@@ -462,7 +462,242 @@ cor_actors_revenue
 **Explicación:**  
 El scatter muestra si al subir actores suben ingresos. La correlación resume la relación: cerca de 0 significa relación débil.
 
+```{r}
+actors_trend <- movies %>%
+  filter(!is.na(releaseYear), actorsAmount > 0, actorsAmount < 200) %>%
+  group_by(releaseYear) %>%
+  summarise(avg_actors = mean(actorsAmount, na.rm = TRUE), .groups = "drop")
 
+ggplot(actors_trend, aes(x = releaseYear, y = avg_actors)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Actores promedio por año", x = "Año", y = "Actores promedio")
+```
+
+**Explicación:**  
+Este gráfico responde si con los años se ve tendencia a elencos más grandes (promedio de actores por año).
+
+### 4.9 Influencia de género del elenco en popularidad e ingresos
+
+```{r}
+gender_df <- movies %>%
+  mutate(
+    total_cast = castWomenAmount + castMenAmount,
+    women_ratio = if_else(total_cast > 0, castWomenAmount / total_cast, NA_real_)
+  ) %>%
+  filter(!is.na(women_ratio))
+
+kable(
+  tibble(
+    cor_women_popularity = cor(gender_df$women_ratio, gender_df$popularity, use = "complete.obs"),
+    cor_women_revenue = cor(gender_df$women_ratio, gender_df$revenue, use = "complete.obs")
+  ),
+  caption = "Correlación de proporción de mujeres con popularidad e ingresos"
+)
+```
+
+```{r}
+ggplot(gender_df, aes(x = women_ratio, y = popularity)) +
+  geom_point(alpha = 0.3) +
+  theme_minimal() +
+  labs(title = "Proporción de mujeres vs popularidad", x = "women_ratio", y = "popularity")
+
+ggplot(gender_df %>% filter(revenue > 0), aes(x = women_ratio, y = revenue)) +
+  geom_point(alpha = 0.3) +
+  scale_y_continuous(labels = dollar) +
+  theme_minimal() +
+  labs(title = "Proporción de mujeres vs ingresos", x = "women_ratio", y = "revenue")
+```
+
+**Explicación:**  
+Se analiza si cambia popularidad o ingresos según la proporción de mujeres en el elenco. Si la nube no tiene tendencia clara y la correlación es baja, la relación es débil.
+
+### 4.10 ¿Quiénes son los directores de las 20 películas mejor calificadas?
+
+```{r}
+top_rated_movies <- movies %>%
+  filter(voteCount > 100) %>%
+  arrange(desc(voteAvg)) %>%
+  select(title, director, voteAvg, voteCount) %>%
+  slice(1:20)
+
+kable(top_rated_movies, caption = "Top 20 películas mejor calificadas (con >100 votos)")
+```
+
+```{r}
+top_directors <- top_rated_movies %>%
+  count(director, sort = TRUE)
+
+kable(top_directors, caption = "Directores que aparecen en el Top 20")
+```
+
+**Explicación:**  
+El filtro de votos evita casos raros. Luego se ve qué directores se repiten en las mejores.
+
+### 4.11 ¿Cómo se correlacionan los presupuestos con los ingresos?
+
+```{r}
+ggplot(movies %>% filter(budget > 0), aes(x = budget)) +
+  geom_histogram(bins = 50) +
+  scale_x_continuous(labels = dollar) +
+  labs(
+    title = "Distribución de presupuestos",
+    x = "Presupuesto",
+    y = "Frecuencia"
+  ) +
+  theme_minimal()
+
+ggplot(movies %>% filter(budget > 0, revenue > 0), aes(x = budget, y = revenue)) +
+  geom_point(alpha = 0.4) +
+  scale_x_continuous(labels = dollar) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Presupuesto vs Ingresos",
+    x = "Presupuesto",
+    y = "Ingresos"
+  ) +
+  theme_minimal()
+
+cor_budget_revenue <- cor(movies$budget, movies$revenue, use = "complete.obs")
+cor_budget_revenue
+```
+
+**Explicación:**  
+Se ve una relación positiva: en general, más presupuesto suele asociarse con más ingresos. Igual, no significa que “más presupuesto = éxito garantizado”.
+
+### 4.12 ¿Se asocian ciertos meses de lanzamiento con mejores ingresos?
+
+```{r}
+revenue_by_month <- movies %>%
+  filter(revenue > 0, !is.na(releaseMonth)) %>%
+  group_by(releaseMonth) %>%
+  summarise(avg_revenue = mean(revenue, na.rm = TRUE), .groups = "drop")
+
+ggplot(revenue_by_month, aes(x = releaseMonth, y = avg_revenue)) +
+  geom_col() +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Ingresos promedio por mes de lanzamiento",
+    x = "Mes",
+    y = "Ingresos promedio"
+  ) +
+  theme_minimal()
+```
+
+**Explicación:**  
+Esto muestra si hay meses donde, en promedio, las películas ganan más.
+
+### 4.13 ¿En qué meses se lanzan más películas y cuántas en promedio?
+
+```{r}
+movies_per_month <- movies %>%
+  filter(!is.na(releaseMonth)) %>%
+  group_by(releaseMonth) %>%
+  summarise(total_movies = n(), .groups = "drop")
+
+ggplot(movies_per_month, aes(x = releaseMonth, y = total_movies)) +
+  geom_col() +
+  labs(
+    title = "Cantidad de películas lanzadas por mes",
+    x = "Mes",
+    y = "Cantidad de películas"
+  ) +
+  theme_minimal()
+
+mean(movies_per_month$total_movies)
+```
+
+**Explicación:**  
+El gráfico indica en qué meses se estrena más. El promedio ayuda a comparar si un mes está por arriba o por debajo de lo normal.
+
+### 4.14 ¿Cómo se correlacionan las calificaciones con el éxito comercial?
+
+```{r}
+ggplot(movies %>% filter(revenue > 0), aes(x = voteAvg, y = revenue)) +
+  geom_point(alpha = 0.4) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Calificación promedio vs Ingresos",
+    x = "Calificación promedio",
+    y = "Ingresos"
+  ) +
+  theme_minimal()
+
+cor_voteavg_revenue <- cor(movies$voteAvg, movies$revenue, use = "complete.obs")
+cor_voteavg_revenue
+```
+
+**Explicación:**  
+Si la correlación es baja, significa que una mejor calificación no siempre se traduce en más ingresos (y viceversa).
+
+### 4.15 ¿La popularidad del elenco se correlaciona con el éxito de taquilla?
+
+```{r}
+movies <- movies %>%
+  mutate(
+    actorsPopularity_avg = map_dbl(actorsPopularity, \(x){
+      if (is.na(x) || str_trim(x) == "") return(NA_real_)
+      vals <- suppressWarnings(as.numeric(str_split(x, "\\|")[[1]]))
+      if (all(is.na(vals))) NA_real_ else mean(vals, na.rm = TRUE)
+    })
+  )
+
+ggplot(movies %>% filter(revenue > 0, !is.na(actorsPopularity_avg)),
+       aes(x = actorsPopularity_avg, y = revenue)) +
+  geom_point(alpha = 0.4) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Popularidad promedio del elenco vs Ingresos",
+    x = "Popularidad promedio del elenco",
+    y = "Ingresos"
+  ) +
+  theme_minimal()
+
+cor_castpop_revenue <- cor(movies$actorsPopularity_avg, movies$revenue, use = "complete.obs")
+cor_castpop_revenue
+```
+
+**Explicación:**  
+Esto revisa si elencos más “populares” se asocian con más taquilla. Si la correlación es baja, la relación no es fuerte.
+
+### 4.16 ¿Qué estrategias de marketing generan mejores resultados?
+
+```{r}
+marketing_video <- movies %>%
+  mutate(video_cat = case_when(
+    is.na(video) ~ "Desconocido",
+    video %in% c(TRUE, "TRUE", "True", 1, "1") ~ "Sí",
+    video %in% c(FALSE, "FALSE", "False", 0, "0") ~ "No",
+    TRUE ~ as.character(video)
+  )) %>%
+  group_by(video_cat) %>%
+  summarise(
+    avg_revenue = mean(revenue, na.rm = TRUE),
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+kable(marketing_video, digits = 2, caption = "Promedios según video promocional")
+```
+
+```{r}
+marketing_homepage <- movies %>%
+  mutate(has_homepage = if_else(is.na(homePage), "No", "Sí")) %>%
+  group_by(has_homepage) %>%
+  summarise(
+    avg_revenue = mean(revenue, na.rm = TRUE),
+    avg_popularity = mean(popularity, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+kable(marketing_homepage, digits = 2, caption = "Promedios según si tiene homepage")
+```
+
+**Explicación:**  
+Comparando promedios, se puede ver si tener video promocional o homepage se asocia con mayor popularidad e ingresos. Si hay mucha diferencia, puede sugerir que ayuda (aunque no prueba causalidad).
 
 ---
 ## Ejercicio 5 (Puntos extra)
