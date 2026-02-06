@@ -1,0 +1,221 @@
+---
+title: "Laboratorio 1"
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document:
+    latex_engine: xelatex
+header-includes:
+  - \usepackage{float}
+  - \usepackage[margin=1in]{geometry}
+---
+
+## Integrantes
+- Nina Nájera - 231088  
+- Mishell Ciprian - 231169  
+- Diego Ramirez - 23601  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+
+library(tidyverse)
+library(knitr)
+library(lubridate)
+library(scales)
+library(stringr)
+library(purrr)
+
+if (!requireNamespace("nortest", quietly = TRUE)) install.packages("nortest")
+library(nortest)
+
+movies <- read.csv("movies_2026.csv", stringsAsFactors = FALSE, fileEncoding = "UTF-8")
+
+# Arreglar posibles caracteres raros (evita errores de UTF-8 al imprimir tablas)
+movies <- movies %>%
+  mutate(across(where(is.character), ~ iconv(.x, from = "", to = "UTF-8", sub = "")))
+
+movies <- movies %>%
+  mutate(
+    genres = na_if(str_trim(genres), ""),
+    productionCountry = na_if(str_trim(productionCountry), ""),
+    productionCompanyCountry = na_if(str_trim(productionCompanyCountry), ""),
+    homePage = na_if(str_trim(homePage), ""),
+    actorsPopularity = na_if(str_trim(actorsPopularity), ""),
+    releaseDate = na_if(str_trim(releaseDate), "")
+  ) %>%
+  mutate(
+    releaseDate = suppressWarnings(as.Date(releaseDate)),
+    releaseYear = if_else(!is.na(releaseDate), year(releaseDate), as.integer(releaseYear)),
+    releaseMonth = if_else(!is.na(releaseDate), month(releaseDate, label = TRUE, abbr = TRUE), NA)
+  ) %>%
+  mutate(
+    main_genre = map_chr(str_split(genres %||% "", "\\|"), ~ ifelse(length(.x) >= 1 && .x[1] != "", .x[1], NA_character_)),
+    productionCountry_main = map_chr(str_split(productionCountry %||% "", "\\|"), ~ ifelse(length(.x) >= 1 && .x[1] != "", .x[1], NA_character_))
+  )
+```
+### Recomendación.
+  Recomendamos que corran el archivo en html ya que en PDF por algún motivo que aún desconocemos porque algunas tablas o gráficos se están corriendo a la derecha, pero en html no pasa eso. 
+
+### Link del repositorio: 
+  https://github.com/Ninaswiftie09/Mineria-de-Datos 
+
+## Ejercicio 1
+
+> **Enunciado:** Haga una exploración rápida de sus datos (resumen del conjunto de datos).
+
+```{r ejercicio1_resumen}
+dim(movies)
+names(movies)
+dplyr::glimpse(movies)
+summary(movies)
+
+na_by_col <- sort(colSums(is.na(movies)), decreasing = TRUE)
+na_by_col[1:15]
+```
+
+**Comentario:**  
+Con esto vemos rápido: el tamaño del dataset, las columnas que existen, el tipo de datos, valores típicos y cuáles variables tienen más datos faltantes (NA).
+
+---
+
+## Ejercicio 2
+
+### Tipos de variables (según su naturaleza)
+
+- **id**: Identificador (no se analiza como variable)
+- **popularity**: Cuantitativa continua  
+- **budget**: Cuantitativa continua  
+- **revenue**: Cuantitativa continua  
+- **originalTitle**: Cualitativa nominal  
+- **originalLanguage**: Cualitativa nominal  
+- **title**: Cualitativa nominal  
+- **homePage**: Cualitativa nominal (sí/no, según exista)  
+- **video**: Cualitativa nominal dicotómica  
+- **director**: Cualitativa nominal  
+- **runtime**: Cuantitativa continua  
+- **genres**: Cualitativa nominal (texto, a veces combinada)  
+- **genresAmount**: Cuantitativa discreta  
+- **productionCompany**: Cualitativa nominal  
+- **productionCoAmount**: Cuantitativa discreta  
+- **productionCompanyCountry**: Cualitativa nominal  
+- **productionCountry**: Cualitativa nominal  
+- **productionCountriesAmount**: Cuantitativa discreta  
+- **releaseDate**: Variable temporal (fecha)  
+- **voteCount**: Cuantitativa discreta  
+- **voteAvg**: Cuantitativa continua  
+- **actors**: Cualitativa nominal  
+- **actorsPopularity**: Cuantitativa continua (lista por actor)  
+- **actorsCharacter**: Cualitativa nominal  
+- **actorsAmount**: Cuantitativa discreta  
+- **castWomenAmount**: Cuantitativa discreta  
+- **castMenAmount**: Cuantitativa discreta  
+- **releaseYear**: Cuantitativa discreta (año)
+
+---
+
+
+## Ejercicio 5 (Puntos extra)
+
+> 6 preguntas nuevas propuestas para explorar el dataset (y ganar puntos extra).
+
+### 5.1 ¿Qué idiomas tienen mayor ingreso promedio?
+
+```{r}
+rev_by_lang <- movies %>%
+  filter(revenue > 0, !is.na(originalLanguage)) %>%
+  group_by(originalLanguage) %>%
+  summarise(avg_revenue = mean(revenue, na.rm = TRUE), n = n(), .groups = "drop") %>%
+  filter(n >= 20) %>%
+  arrange(desc(avg_revenue))
+
+kable(head(rev_by_lang, 10), caption = "Top 10 idiomas por ingreso promedio (n>=20)") 
+```
+
+**Explicación:**  
+Se filtra por n>=20 para que no gane un idioma con muy pocas películas.
+
+### 5.2 ¿Más géneros (genresAmount) se asocia con más ingresos?
+
+```{r}
+ggplot(movies %>% filter(revenue > 0, genresAmount > 0), aes(x = genresAmount, y = revenue)) +
+  geom_point(alpha = 0.35) +
+  scale_y_continuous(labels = dollar) +
+  theme_minimal() +
+  labs(title = "Cantidad de géneros vs ingresos", x = "Cantidad de géneros", y = "Ingresos")
+
+cor(movies$genresAmount, movies$revenue, use = "complete.obs")
+```
+
+**Explicación:**  
+Esto sirve para ver si películas “más mezcladas” en géneros tienden a generar más taquilla.
+
+### 5.3 ¿Qué tan común es tener homepage por año?
+
+```{r}
+homepage_by_year <- movies %>%
+  filter(!is.na(releaseYear)) %>%
+  mutate(has_homepage = !is.na(homePage)) %>%
+  group_by(releaseYear) %>%
+  summarise(pct_homepage = mean(has_homepage, na.rm = TRUE) * 100, .groups = "drop")
+
+ggplot(homepage_by_year, aes(x = releaseYear, y = pct_homepage)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  labs(title = "Porcentaje de películas con homepage por año", x = "Año", y = "% con homepage")
+```
+
+**Explicación:**  
+Muestra si con el tiempo se vuelve más común que una película tenga página oficial registrada.
+
+### 5.4 ¿Cómo cambia la popularidad promedio por año?
+
+```{r}
+pop_by_year <- movies %>%
+  filter(!is.na(releaseYear), !is.na(popularity)) %>%
+  group_by(releaseYear) %>%
+  summarise(avg_popularity = mean(popularity, na.rm = TRUE), .groups = "drop")
+
+ggplot(pop_by_year, aes(x = releaseYear, y = avg_popularity)) +
+  geom_line() + geom_point() +
+  theme_minimal() +
+  labs(title = "Popularidad promedio por año", x = "Año", y = "Popularidad promedio")
+```
+
+**Explicación:**  
+Sirve para ver si el dataset refleja años con películas más “populares” en promedio.
+
+### 5.5 ¿Runtime se relaciona con voteAvg?
+
+```{r}
+ggplot(movies %>% filter(!is.na(runtime), !is.na(voteAvg)),
+       aes(x = runtime, y = voteAvg)) +
+  geom_point(alpha = 0.35) +
+  theme_minimal() +
+  labs(title = "Duración vs calificación promedio", x = "Duración (min)", y = "voteAvg")
+
+cor(movies$runtime, movies$voteAvg, use = "complete.obs")
+```
+
+**Explicación:**  
+Ayuda a ver si películas más largas tienden a ser mejor o peor calificadas.
+
+### 5.6 ¿Qué países tienen mejor calificación promedio?
+
+```{r}
+rating_by_country <- movies %>%
+  filter(!is.na(productionCountry_main), voteCount > 100) %>%
+  group_by(productionCountry_main) %>%
+  summarise(avg_vote = mean(voteAvg, na.rm = TRUE), n = n(), .groups = "drop") %>%
+  filter(n >= 20) %>%
+  arrange(desc(avg_vote))
+
+kable(head(rating_by_country, 10), caption = "Top 10 países por calificación promedio (n>=20, voteCount>100)")
+```
+
+**Explicación:**  
+Se filtra por cantidad mínima de películas y votos para que sea más justo el ranking.
