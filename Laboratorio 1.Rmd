@@ -118,6 +118,181 @@ Con esto vemos rápido: el tamaño del dataset, las columnas que existen, el tip
 
 ---
 
+## Ejercicio 3
+
+### 3.1 Variables cuantitativas
+
+```{r}
+quant_vars <- movies %>%
+  select(
+    popularity, budget, revenue, runtime, voteAvg, voteCount,
+    actorsAmount, castWomenAmount, castMenAmount
+  )
+```
+
+#### Histogramas (vista general)
+
+```{r fig.width=8.5, fig.height=6, fig.align='center', out.width="0.98\\linewidth"}
+quant_vars %>%
+  pivot_longer(cols = everything()) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~name, scales = "free", ncol = 3) +
+  theme_minimal(base_size = 10) +
+  theme(
+    strip.text = element_text(size = 9),
+    plot.margin = margin(6, 6, 6, 6)
+  )
+```
+
+**Explicación:**  
+Los histogramas ayudan a ver cómo se distribuye cada variable (si está muy cargada a un lado, si hay valores extremos, etc.).
+
+#### Histogramas en escala log (solo para variables muy grandes)
+
+```{r}
+quant_log <- quant_vars %>%
+  mutate(
+    budget = ifelse(budget <= 0, NA, budget),
+    revenue = ifelse(revenue <= 0, NA, revenue),
+    voteCount = ifelse(voteCount <= 0, NA, voteCount)
+  ) %>%
+  select(budget, revenue, voteCount) %>%
+  pivot_longer(everything()) %>%
+  filter(!is.na(value))
+
+ggplot(quant_log, aes(x = log10(value))) +
+  geom_histogram(bins = 30) +
+  facet_wrap(~name, scales = "free", ncol = 3) +
+  theme_minimal() +
+  labs(x = "log10(valor)")
+```
+
+**Explicación:**  
+Como presupuesto/ingresos/votos tienen valores enormes, la escala log nos deja ver mejor el patrón sin que todo se aplaste por unos pocos valores muy altos.
+
+#### Prueba de normalidad (Lilliefors)
+
+```{r}
+lillie_results <- sapply(quant_vars, function(x) {
+  x <- na.omit(x)
+  nortest::lillie.test(x)$p.value
+})
+
+lillie_tbl <- tibble(
+  variable = names(lillie_results),
+  p_value = as.numeric(lillie_results),
+  normalidad = if_else(p_value < 0.05, "No normal", "No se rechaza normalidad")
+) %>% arrange(p_value)
+
+kable(lillie_tbl, digits = 6, caption = "Prueba de normalidad de Lilliefors por variable")
+```
+
+**Conclusión:**  
+Si el **p-value < 0.05**, se rechaza la normalidad. En este dataset, la mayoría de variables cuantitativas dan p-values muy pequeños, así que **no siguen una distribución normal**.
+
+---
+
+### 3.2 Variables cualitativas
+
+> Nota: Para no hacer el reporte eterno, se muestra **Top 10 + Otros** cuando hay muchas categorías.
+
+```{r}
+top_n <- 10
+```
+
+#### Tablas de frecuencia
+
+**Idioma original (originalLanguage)**
+
+```{r}
+freq_language <- movies %>%
+  count(originalLanguage, sort = TRUE) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+kable(
+  head(freq_language, top_n),
+  col.names = c("Idioma original", "Frecuencia", "Porcentaje (%)"),
+  digits = 2,
+  caption = paste0("Top ", top_n, " idiomas originales")
+)
+```
+
+**Explicación:**  
+Aquí se observa qué idiomas aparecen más en el dataset. Generalmente pocos idiomas dominan y los demás son menos frecuentes.
+
+**Género principal (main_genre) – Top 10 + Otros**
+
+```{r}
+freq_main_genre <- movies %>%
+  filter(!is.na(main_genre)) %>%
+  count(main_genre, sort = TRUE) %>%
+  mutate(grupo = if_else(row_number() <= top_n, main_genre, "Otros")) %>%
+  group_by(grupo) %>%
+  summarise(n = sum(n), .groups = "drop") %>%
+  mutate(percentage = n / sum(n) * 100) %>%
+  arrange(desc(n))
+
+kable(
+  freq_main_genre,
+  col.names = c("Género principal", "Frecuencia", "Porcentaje (%)"),
+  digits = 2,
+  caption = paste0("Frecuencia de géneros principales (Top ", top_n, " + Otros)")
+)
+```
+
+**Explicación:**  
+Se usa el **género principal** (el primero) para resumir mejor. Normalmente pocos géneros concentran gran parte de las películas.
+
+**Videos promocionales (video)**
+
+```{r}
+freq_video <- movies %>%
+  mutate(video_cat = case_when(
+    is.na(video) ~ "Desconocido",
+    video %in% c(TRUE, "TRUE", "True", 1, "1") ~ "Sí",
+    video %in% c(FALSE, "FALSE", "False", 0, "0") ~ "No",
+    TRUE ~ as.character(video)
+  )) %>%
+  count(video_cat, sort = TRUE) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+kable(
+  freq_video,
+  col.names = c("Video promocional", "Frecuencia", "Porcentaje (%)"),
+  digits = 2,
+  caption = "Tabla de frecuencias de videos promocionales"
+)
+```
+
+**Explicación:**  
+Se separa “Desconocido” cuando falta el dato, para no mezclarlo con un “No”.
+
+**País de producción (productionCountry_main) – Top 10 + Otros**
+
+```{r}
+freq_prod_country <- movies %>%
+  filter(!is.na(productionCountry_main)) %>%
+  count(productionCountry_main, sort = TRUE) %>%
+  mutate(grupo = if_else(row_number() <= top_n, productionCountry_main, "Otros")) %>%
+  group_by(grupo) %>%
+  summarise(n = sum(n), .groups = "drop") %>%
+  mutate(percentage = n / sum(n) * 100) %>%
+  arrange(desc(n))
+
+kable(
+  freq_prod_country,
+  col.names = c("País de producción", "Frecuencia", "Porcentaje (%)"),
+  digits = 2,
+  caption = paste0("Frecuencia de países de producción (Top ", top_n, " + Otros)")
+)
+```
+
+**Conclusión:**  
+En general, las cualitativas no se reparten parejo: hay categorías que dominan y luego una “cola” larga de categorías raras. Por eso Top 10 + Otros es una forma práctica de resumir.
+
+---
+
 
 ## Ejercicio 5 (Puntos extra)
 
@@ -219,3 +394,4 @@ kable(head(rating_by_country, 10), caption = "Top 10 países por calificación p
 
 **Explicación:**  
 Se filtra por cantidad mínima de películas y votos para que sea más justo el ranking.
+
