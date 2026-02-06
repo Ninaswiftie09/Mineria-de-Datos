@@ -292,8 +292,179 @@ kable(
 En general, las cualitativas no se reparten parejo: hay categorías que dominan y luego una “cola” larga de categorías raras. Por eso Top 10 + Otros es una forma práctica de resumir.
 
 ---
+## Ejercicio 4
+### 4.1 ¿Cuáles son las 10 películas con mayor presupuesto?
+
+```{r}
+top_budget <- movies %>%
+  filter(budget > 0, !is.na(title)) %>%
+  arrange(desc(budget)) %>%
+  select(title, budget) %>%
+  slice(1:10)
+
+kable(top_budget, caption = "Top 10 películas con mayor presupuesto")
+```
+
+**Explicación:**  
+Estas son las películas con presupuestos más altos. Normalmente son películas grandes (blockbusters) por efectos, marketing y producción.
+
+### 4.2 ¿Cuáles son las 10 películas con mayores ingresos?
+
+```{r}
+top_revenue <- movies %>%
+  filter(revenue > 0, !is.na(title)) %>%
+  arrange(desc(revenue)) %>%
+  select(title, revenue) %>%
+  slice(1:10)
+
+kable(top_revenue, caption = "Top 10 películas con mayores ingresos")
+```
+
+**Explicación:**  
+Aquí se ve qué películas fueron las más taquilleras (ingresos más altos).
+
+### 4.3 ¿Cuál es la película con más votos?
+
+```{r}
+most_votes <- movies %>%
+  arrange(desc(voteCount)) %>%
+  select(title, voteCount) %>%
+  slice(1)
+
+kable(most_votes, caption = "Película con mayor cantidad de votos")
+```
+
+**Explicación:**  
+Es la película con más gente votando, o sea, la más “popular” en participación.
+
+### 4.4 ¿Cuál es la peor película según los votos?
+
+```{r}
+worst_movie <- movies %>%
+  filter(voteCount > 50) %>%
+  arrange(voteAvg) %>%
+  select(title, voteAvg, voteCount) %>%
+  slice(1)
+
+kable(worst_movie, caption = "Peor película (con al menos 50 votos)")
+```
+
+**Explicación:**  
+Se filtra por mínimo de votos para que no gane una película con 1 voto. Luego se toma la de menor promedio.
+
+### 4.5 ¿Cuántas películas se hicieron por año?
+
+```{r}
+movies_per_year <- movies %>%
+  filter(!is.na(releaseYear)) %>%
+  count(releaseYear, name = "total") %>%
+  arrange(releaseYear)
+
+ggplot(movies_per_year, aes(x = releaseYear, y = total)) +
+  geom_col() +
+  labs(
+    title = "Cantidad de películas por año",
+    x = "Año de lanzamiento",
+    y = "Cantidad de películas"
+  ) +
+  theme_minimal()
+
+kable(movies_per_year %>% arrange(desc(total)) %>% slice(1), caption = "Año con más películas en el dataset")
+```
+
+**Explicación:**  
+El gráfico muestra cuántas películas aparecen por año. Si algún año tiene un pico, puede ser porque el dataset tiene más registros de ese periodo.
+
+### 4.6 Géneros principales y duración
+
+**Género que predomina en todo el dataset (género principal)**
+
+```{r}
+genre_count <- movies %>%
+  filter(!is.na(main_genre)) %>%
+  count(main_genre, sort = TRUE)
+
+ggplot(genre_count[1:10,], aes(x = reorder(main_genre, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Géneros principales más frecuentes",
+    x = "Género principal",
+    y = "Cantidad de películas"
+  ) +
+  theme_minimal()
+```
+
+**Explicación:**  
+Acá se ven los géneros principales más comunes. Esto ayuda a entender qué tipo de películas dominan la muestra.
+
+**Género de las películas más largas**
+
+```{r}
+longest_movies <- movies %>%
+  filter(!is.na(runtime)) %>%
+  arrange(desc(runtime)) %>%
+  select(title, main_genre, runtime) %>%
+  slice(1:10)
+
+kable(longest_movies, caption = "Top 10 películas más largas")
+```
+
+**Explicación:**  
+Sirve para ver si cierto tipo de película tiende a durar más.
+
+### 4.7 ¿Qué género obtuvo mayores ganancias?
+
+```{r}
+revenue_by_genre <- movies %>%
+  filter(revenue > 0, !is.na(main_genre)) %>%
+  group_by(main_genre) %>%
+  summarise(
+    total_revenue = sum(revenue, na.rm = TRUE),
+    avg_revenue = mean(revenue, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(total_revenue))
+
+kable(head(revenue_by_genre, 10), caption = "Top 10 géneros principales por ingresos totales")
+```
+
+```{r}
+ggplot(head(revenue_by_genre, 10), aes(x = reorder(main_genre, total_revenue), y = total_revenue)) +
+  geom_col() +
+  coord_flip() +
+  scale_y_continuous(labels = dollar) +
+  theme_minimal() +
+  labs(title = "Top 10 géneros por ingresos totales", x = "Género principal", y = "Ingresos totales")
+```
+
+**Explicación:**  
+Se usa la suma de ingresos por género principal para ver cuáles géneros acumulan más taquilla.
+
+### 4.8 ¿La cantidad de actores influye en los ingresos? ¿Se han hecho películas con más actores en los últimos años?
+
+```{r}
+ggplot(movies %>% filter(revenue > 0), aes(x = actorsAmount, y = revenue)) +
+  geom_point(alpha = 0.4) +
+  scale_y_continuous(labels = dollar) +
+  labs(
+    title = "Cantidad de actores vs ingresos",
+    x = "Cantidad de actores",
+    y = "Ingresos"
+  ) +
+  theme_minimal()
+
+cor_actors_revenue <- cor(movies$actorsAmount, movies$revenue, use = "complete.obs")
+cor_actors_revenue
+```
+
+**Explicación:**  
+El scatter muestra si al subir actores suben ingresos. La correlación resume la relación: cerca de 0 significa relación débil.
 
 
+
+---
 ## Ejercicio 5 (Puntos extra)
 
 > 6 preguntas nuevas propuestas para explorar el dataset (y ganar puntos extra).
