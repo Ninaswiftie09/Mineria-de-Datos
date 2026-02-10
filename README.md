@@ -1,7 +1,8 @@
-## Minería de Datos 
-Este repositorio es para todo el curso de Minería de Datos, lo estamos manejando por branches 
-así que para ver la activiad que se desee calificar, se puede ver en su branch respectiva. 
+## Proyecto 1
 
-*Nota*: Por favor, no modificar esta rama, ya que es únicamente informativa.
-
- ![alt text](image.png)
+### Integrantes:
+    - Nina Nájera - 231088
+    - Mishell Ciprian - 231169
+    - Diego Ramirez - 23601
+    - Eliazar Canastuj - 23384
+    - Anthony Lou - 
