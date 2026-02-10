@@ -55,21 +55,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# -------------------------
-# Data / outputs 
-# -------------------------
-data/
-datasets/
-*.csv
-*.tsv
-*.xlsx
-*.xls
-*.sav
-*.dta
-*.sas7bdat
-*.rds
-*.pkl
-*.pickle
 
 # Results / figures
 outputs/
