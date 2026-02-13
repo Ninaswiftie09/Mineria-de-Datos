@@ -1,4 +1,4 @@
-## Proyecto 2
+## Tarea 2
 
 ### Integrantes:
     - Nina Nájera - 231088
