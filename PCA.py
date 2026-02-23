@@ -24,7 +24,7 @@ print(os.listdir())
 # ===============================
 # 2. Cargar dataset
 # ===============================
-df = pd.read_csv("movies_2026.csv")
+df = pd.read_csv("Mineria-de-Datos/movies_2026.csv", encoding="latin1")
 print("\nDataset cargado correctamente.")
 print(df.head())
 
