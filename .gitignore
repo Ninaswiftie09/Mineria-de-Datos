@@ -56,17 +56,6 @@ ehthumbs.db
 Desktop.ini
 
 
-# Results / figures
-outputs/
-results/
-figures/
-plots/
-*.png
-*.jpg
-*.jpeg
-
-
-
 # -------------------------
 # Secrets
 # -------------------------
