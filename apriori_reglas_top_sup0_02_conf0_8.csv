@@ -1,0 +1,16 @@
+antecedents,consequents,support,confidence,lift
+"popularity_popularity=(16.712, 11474.647], releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(6.4, 10.0]","voteCount_voteCount=(193.0, 30788.0]",0.0689603138675117,0.8978388998035364,2.6963648288510735
+"popularity_popularity=(16.712, 11474.647], releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0]","voteCount_voteCount=(193.0, 30788.0]",0.10633267944268397,0.8830409356725146,2.6519239942757196
+"releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(6.4, 10.0]","voteCount_voteCount=(193.0, 30788.0]",0.1020069413007394,0.8622448979591837,2.589469911831802
+"popularity_popularity=(16.712, 11474.647], releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(-0.001, 6.4]","voteCount_voteCount=(193.0, 30788.0]",0.037372365575172276,0.8569780853517879,2.5736527665980202
+"releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0]","voteCount_voteCount=(193.0, 30788.0]",0.15929782204114482,0.8389403973509935,2.519482483343671
+"popularity_popularity=(16.712, 11474.647], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(6.4, 10.0]","voteCount_voteCount=(193.0, 30788.0]",0.09913988229968311,0.8291964661337821,2.4902197799404413
+"popularity_popularity=(16.712, 11474.647], releaseYear_releaseYear=(1901.999, 2016.0], voteAvg_voteAvg=(6.4, 10.0]","voteCount_voteCount=(193.0, 30788.0]",0.09712791107087168,0.816490486257928,2.4520615343344208
+"releaseYear_releaseYear=(2016.0, 2025.0], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(6.4, 10.0], voteCount_voteCount=(193.0, 30788.0]","popularity_popularity=(16.712, 11474.647]",0.02992807202856999,0.8095238095238095,2.428571428571429
+"popularity_popularity=(0.0997, 16.712], runtime_runtime=(97.0, 750.0], voteCount_voteCount=(193.0, 30788.0]","releaseYear_releaseYear=(1901.999, 2016.0]",0.05296514259846084,0.8284815106215577,2.4275668257431375
+"popularity_popularity=(16.712, 11474.647], runtime_runtime=(97.0, 750.0]","voteCount_voteCount=(193.0, 30788.0]",0.14782958603691967,0.8047645125958378,2.4168464161507326
+"popularity_popularity=(0.0997, 16.712], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(6.4, 10.0], voteCount_voteCount=(193.0, 30788.0]","releaseYear_releaseYear=(1901.999, 2016.0]",0.033046627433227706,0.8243412797992472,2.4154353697404325
+"releaseYear_releaseYear=(2016.0, 2025.0], voteAvg_voteAvg=(6.4, 10.0], voteCount_voteCount=(193.0, 30788.0]","popularity_popularity=(16.712, 11474.647]",0.039987928172627134,0.8022199798183653,2.4066599394550963
+"releaseYear_releaseYear=(1901.999, 2016.0], runtime_runtime=(97.0, 750.0], voteAvg_voteAvg=(-0.001, 6.4]","voteCount_voteCount=(193.0, 30788.0]",0.05729088074040541,0.8004216444132116,2.4038040351327883
+"popularity_popularity=(0.0997, 16.712], voteAvg_voteAvg=(6.4, 10.0], voteCount_voteCount=(193.0, 30788.0]","releaseYear_releaseYear=(1901.999, 2016.0]",0.0450178562446557,0.8203483043079743,2.403735392475584
+"popularity_popularity=(0.0997, 16.712], voteCount_voteCount=(193.0, 30788.0]","releaseYear_releaseYear=(1901.999, 2016.0]",0.0826417182234294,0.8190428713858424,2.3999102912338883
