@@ -6,6 +6,7 @@ __pycache__/
 *$py.class
 *.pyo
 *.pyd
+requirements.txt
 
 # Entornos virtuales
 .venv/
