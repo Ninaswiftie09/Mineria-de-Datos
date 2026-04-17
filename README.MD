@@ -1,4 +1,4 @@
-## Laboratorio 6
+## Laboratorio 7
 
 ### Integrantes:
     Nina Nájera - 231088
