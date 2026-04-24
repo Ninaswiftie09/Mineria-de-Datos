@@ -1,8 +1,0 @@
-{
-    "best_params": {
-        "modelo__C": 1,
-        "modelo__penalty": "l2"
-    },
-    "best_score_f1_cv": 0.7035080659205311,
-    "tiempo_tuneo_segundos": 98.14359920000425
-}
