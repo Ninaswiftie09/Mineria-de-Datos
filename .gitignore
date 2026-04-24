@@ -62,3 +62,5 @@ Thumbs.db
 *.joblib
 *.h5
 *.hdf5data/procesados_l8/
+
+data/procesados_l8/
