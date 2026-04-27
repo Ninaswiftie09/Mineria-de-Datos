@@ -64,3 +64,4 @@ Thumbs.db
 *.hdf5data/procesados_l8/
 
 data/procesados_l8/
+/outputs
