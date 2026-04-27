@@ -61,9 +61,7 @@ outputs/
 results/
 figures/
 plots/
-*.png
-*.jpg
-*.jpeg
+
 
 
 
